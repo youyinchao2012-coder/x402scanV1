@@ -4,8 +4,9 @@
 // handling the 402 flow itself: x402-fetch signs and settles USDC on Base.
 //
 // Tools:
-//   vcp_preview        free: tier counts + 1 sample/tier + honest backtest
-//   vcp_signal_latest  paid: full daily screening, $0.01 USDC via x402 v2
+//   vcp_preview         free: tier counts + 1 sample/tier + honest backtest
+//   vcp_signal_latest   paid: full daily screening, $0.01 USDC via x402 v2
+//   vcp_signal_history  paid: rolling daily screening history, $0.01 via x402 v2
 //
 // Config (env):
 //   VCP_MCP_BASE_URL      default https://vcp-signal-x402.x402-vcp-signal.workers.dev
@@ -65,6 +66,30 @@ server.registerTool(
   },
 );
 
+async function paidTool(path) {
+  const f = paidFetch();
+  if (!f) {
+    return {
+      content: [
+        {
+          type: "text",
+          text:
+            "Not called: this tool pays $0.01 USDC on Base. Set VCP_MCP_PRIVATE_KEY (0x-prefixed key of a USDC-funded Base wallet) to enable automatic x402 settlement. Free alternative: vcp_preview.",
+        },
+      ],
+      isError: true,
+    };
+  }
+  const r = await getJson(`${BASE_URL}${path}`, f);
+  if (r.status === 402) {
+    return {
+      content: [{ type: "text", text: "Payment failed or wallet lacks USDC on Base: " + JSON.stringify(r.body).slice(0, 500) }],
+      isError: true,
+    };
+  }
+  return { content: [{ type: "text", text: JSON.stringify(r.body, null, 2) }], isError: r.status !== 200 };
+}
+
 server.registerTool(
   "vcp_signal_latest",
   {
@@ -73,29 +98,18 @@ server.registerTool(
       "Full daily VCP screening JSON (tiers A/B/C with code, name, close, trigger, pivot, stop, dryup, depth + backtest metadata). Costs $0.01 USDC on Base per call, settled over x402 v2 — no account, no API key. Requires VCP_MCP_PRIVATE_KEY env with a USDC-funded Base wallet. Research data, not investment advice.",
     inputSchema: {},
   },
-  async () => {
-    const f = paidFetch();
-    if (!f) {
-      return {
-        content: [
-          {
-            type: "text",
-            text:
-              "Not called: this tool pays $0.01 USDC on Base. Set VCP_MCP_PRIVATE_KEY (0x-prefixed key of a USDC-funded Base wallet) to enable automatic x402 settlement. Free alternative: vcp_preview.",
-          },
-        ],
-        isError: true,
-      };
-    }
-    const r = await getJson(`${BASE_URL}/signal/latest`, f);
-    if (r.status === 402) {
-      return {
-        content: [{ type: "text", text: "Payment failed or wallet lacks USDC on Base: " + JSON.stringify(r.body).slice(0, 500) }],
-        isError: true,
-      };
-    }
-    return { content: [{ type: "text", text: JSON.stringify(r.body, null, 2) }], isError: r.status !== 200 };
+  async () => paidTool("/signal/latest"),
+);
+
+server.registerTool(
+  "vcp_signal_history",
+  {
+    title: "VCP daily screening history ($0.01 USDC via x402)",
+    description:
+      "Rolling history of the daily VCP screenings (last 30 recorded days, ascending; days before the service launched are honestly absent). Costs $0.01 USDC on Base per call via x402 v2 — no account, no API key. Requires VCP_MCP_PRIVATE_KEY env with a USDC-funded Base wallet. Research data, not investment advice.",
+    inputSchema: {},
   },
+  async () => paidTool("/signal/history"),
 );
 
 const transport = new StdioServerTransport();
