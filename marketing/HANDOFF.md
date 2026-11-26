@@ -14,7 +14,7 @@
 - 免付費入口:`GET /`(能力發現)、`GET /preview`(免費試閱:每 tier 1 範例+回測)、`GET /stats`(用量)、`GET /llms.txt`(agent 發現)
 - 回購端點:`GET /signal/history`(每日篩選滾動歷史,最近 30 個已記錄日,$0.01/次;服務上線前的日期如實缺席——現況僅數日,引用時注意)
 - MCP:`vcp-signal-mcp`(stdio,見 mcp/;npx 發佈待 YL 建立 npm 帳號)
-- 目錄:x402scan 已掛牌(originId fcbe0340-51c7-4c32-b46f-7d695e1e0e28)
+- 目錄:x402scan 已掛牌且 verified(2026-11-26 復驗:https://www.x402scan.com/server/fcbe0340-51c7-4c32-b46f-7d695e1e0e28;站點改版,舊 /endpoint/ 路徑已失效)
 - 對標定位(研究結論):x402 榜單 7 日數據——Top15 全是「立即動作服務或參考數據」;
   數據類飽和至 $0.001-0.005,收入集中於少數高頻回購買家(第2名 $7,969 僅 88 買家)。
   我們走「免費試閱→單次 $0.01→(若驗證有需求)回購」漏斗。
