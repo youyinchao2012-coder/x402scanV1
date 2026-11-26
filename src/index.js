@@ -15,7 +15,7 @@ import history from "./history.json";
 function makeApp(env) {
   const app = new Hono();
   const PAY_TO = env.PAY_TO;
-  const NETWORK = env.NETWORK || "base-sepolia";
+  const NETWORK = env.NETWORK || "eip155:8453";
   const FACILITATOR = env.FACILITATOR || "https://x402.org/facilitator";
   // x402scan indexes only mainnet chains ("Testnets are not indexed"), so we
   // advertise mainnet Base + Base Sepolia together: Sepolia stays testable
@@ -204,7 +204,8 @@ function makeApp(env) {
   });
 
   // Paid endpoints: x402 v2 payment middleware gates everything below.
-  // NETWORK must be CAIP-2 in v2 (eip155:84532 = Base Sepolia).
+  // NETWORK must be CAIP-2 in v2 (eip155:8453 = Base mainnet). accepts[] order =
+  // client pick order: mainnet first — real agents hold real USDC, not testnet.
   // Count every attempt at the paid route (before the payment gate).
   app.use("/signal/latest", (c, next) => {
     c.executionCtx?.waitUntil(bumpKV("req:signal"));
