@@ -1,0 +1,17 @@
+name = "vcp-signal-x402"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+NETWORK = "eip155:84532"
+# Advertise both chains: x402scan only indexes mainnet, x402.org facilitator only testnet.
+# payai facilitator supports v2 exact on BOTH eip155:8453 and eip155:84532 (verified /supported).
+NETWORKS = "eip155:84532,eip155:8453"
+FACILITATOR = "https://facilitator.payai.network"
+# USDC receiving wallet (EVM, checksummed). Currently a TEMPORARY agent-generated wallet — replace before scaling.
+PAY_TO = "0x8C6CD433C9Ac161a1ce56899028568f0b40b042D"
+
+# Usage counters for 7/24 monitoring (wrangler kv namespace create VCP_COUNTER)
+[[kv_namespaces]]
+binding = "VCP_COUNTER"
+id = "b468e0d1c1754b62bbd01a9682a6b077"

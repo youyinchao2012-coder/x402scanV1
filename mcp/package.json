@@ -1,0 +1,29 @@
+{
+  "name": "vcp-signal-mcp",
+  "version": "0.1.0",
+  "description": "MCP connector for the VCP Signal x402 API (Taiwan-stock volume-contraction screening, $0.01 USDC/call on Base)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mcp",
+    "x402",
+    "stock",
+    "taiwan",
+    "vcp",
+    "agents"
+  ],
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@x402/evm": "^2.32.0",
+    "@x402/fetch": "^2.32.0",
+    "viem": "^2.58.6",
+    "x402-fetch": "^1.2.0"
+  },
+  "bin": {
+    "vcp-signal-mcp": "index.mjs"
+  },
+  "license": "MIT"
+}

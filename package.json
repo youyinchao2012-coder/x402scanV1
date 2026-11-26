@@ -1,0 +1,17 @@
+{
+  "name": "x402-vcp-signal",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@x402/core": "^2.32.0",
+    "@x402/evm": "^2.32.0",
+    "@x402/hono": "^2.32.0",
+    "hono": "^4.13.22",
+    "wrangler": "^4.168.0",
+    "x402-hono": "^1.2.0"
+  }
+}

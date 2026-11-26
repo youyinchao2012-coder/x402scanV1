@@ -1,0 +1,62 @@
+{
+ "product": "VCP Signal API",
+ "asof": "2026-11-26",
+ "source_file": "screen_20261126.json",
+ "bench_rule": "跌破200MA停新倉",
+ "tiers": {
+  "A": [],
+  "B": [
+   {
+    "code": "2412",
+    "name": "中華電",
+    "tier": "B-VCP臨界",
+    "profile": "P1/P3",
+    "close": 169,
+    "trigger": 171.17,
+    "pivot": 171,
+    "dist": -0.012,
+    "tight": 0.093,
+    "dryup": 1.45,
+    "depth": 0.207,
+    "stop_note": "觸發=收盤>pivot且量≥1.4x均量"
+   },
+   {
+    "code": "2474",
+    "name": "可成",
+    "tier": "B-坑右側回站",
+    "profile": "P2",
+    "close": 199.5,
+    "trigger": 199.5,
+    "pivot": 198.23,
+    "dist": 0.006,
+    "tight": null,
+    "dryup": 0.71,
+    "depth": 0.321,
+    "stop_note": "隔日收盤買入;停損=max(進價x0.90,坑底x0.95)"
+   }
+  ],
+  "C": []
+ },
+ "counts": {
+  "A": 0,
+  "B": 2,
+  "C": 0
+ },
+ "methodology": "VCP screening (Minervini-style box + volume contraction) on TWSE/TWSE common stocks; tier A = box breakout, B = pre-breakout tightening (tight<15%, dryup), C = watch.",
+ "backtest": {
+  "window": "2018-04-19..2026-11-05",
+  "n_signals": 227,
+  "n_scored": 197,
+  "mean_ret": 0.0452,
+  "median_ret": -0.0288,
+  "win_rate": 0.279,
+  "outcome_mix": {
+   "stop": 61,
+   "trail": 42,
+   "fail": 76,
+   "timeout": 18,
+   "open": 30
+  },
+  "note": "Backtest on screened universe, not live fills."
+ }
+}
