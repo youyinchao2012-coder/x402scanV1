@@ -9,6 +9,8 @@ import { registerExactEvmScheme } from "@x402/evm/exact/server";
 // The product: latest screening result embedded as a module
 // (rebuilt daily: node scripts/build-signal.mjs reads ../vcp2 screen JSONs).
 import signal from "./signal.json";
+// Rolling daily-screening history (paid product #2; rebuilt by the same daily chain).
+import history from "./history.json";
 
 function makeApp(env) {
   const app = new Hono();
@@ -26,9 +28,13 @@ function makeApp(env) {
   app.get("/.well-known/x402", (c) =>
     c.json({
       version: 1,
-      resources: [new URL(c.req.url).origin + "/signal/latest"],
+      resources: [
+        new URL(c.req.url).origin + "/signal/latest",
+        new URL(c.req.url).origin + "/signal/history",
+      ],
       ownershipProofs: [PAY_TO],
-      instructions: "GET /signal/latest requires x402 payment in USDC ($0.01). GET / is free capability discovery.",
+      instructions:
+        "GET /signal/latest and GET /signal/history require x402 payment in USDC ($0.01 each). GET / is free capability discovery.",
     }),
   );
   app.get("/openapi.json", (c) =>
@@ -74,6 +80,19 @@ function makeApp(env) {
             },
           },
         },
+        "/signal/history": {
+          get: {
+            summary: "Rolling daily VCP screening history (last 30 recorded days)",
+            "x-payment-info": {
+              protocols: ["x402"],
+              price: { mode: "fixed", currency: "USD", amount: "0.01" },
+            },
+            responses: {
+              200: { description: "History JSON" },
+              402: { description: "x402 payment challenge" },
+            },
+          },
+        },
       },
     }),
   );
@@ -90,6 +109,8 @@ function makeApp(env) {
       endpoints: {
         "GET /signal/latest":
           "full latest screening: tiers A/B/C with code, name, close, trigger, pivot, stop, dryup, tight, depth ($0.01 via x402)",
+        "GET /signal/history":
+          "rolling daily screening history, last 30 recorded days, ascending ($0.01 via x402)",
         "GET /preview": "free teaser: tier counts + 1 sample per tier + backtest",
         "GET /llms.txt": "agent discovery doc",
         "GET /stats": "live usage counters",
@@ -150,6 +171,7 @@ function makeApp(env) {
 
 ## Paid
 - GET ${o}/signal/latest: full daily screening JSON. $0.01 USDC via x402 v2 (HTTP 402), no API key.
+- GET ${o}/signal/history: rolling daily screening history (last 30 recorded days). $0.01 USDC via x402 v2.
 
 ## Free
 - GET ${o}/preview: tier counts + 1 sample per tier + backtest.
@@ -165,7 +187,7 @@ function makeApp(env) {
   app.get("/stats", async (c) => {
     if (!env.VCP_COUNTER) return c.json({ error: "kv_not_bound" }, 501);
     const day = new Date().toISOString().slice(0, 10);
-    const keys = ["req:signal", "paid:signal", "free:root"];
+    const keys = ["req:signal", "paid:signal", "req:history", "paid:history", "free:root"];
     const out = { asof: new Date().toISOString(), totals: {}, today: {} };
     for (const k of keys) {
       out.totals[k] = parseInt((await env.VCP_COUNTER.get(k)) || "0", 10);
@@ -179,6 +201,10 @@ function makeApp(env) {
   // Count every attempt at the paid route (before the payment gate).
   app.use("/signal/latest", (c, next) => {
     c.executionCtx?.waitUntil(bumpKV("req:signal"));
+    return next();
+  });
+  app.use("/signal/history", (c, next) => {
+    c.executionCtx?.waitUntil(bumpKV("req:history"));
     return next();
   });
   const server = registerExactEvmScheme(
@@ -261,6 +287,71 @@ function makeApp(env) {
             },
           },
         },
+        "GET /signal/history": {
+          accepts: NETWORKS.map((network) => ({
+            scheme: "exact",
+            network,
+            price: "$0.01",
+            payTo: PAY_TO,
+            maxTimeoutSeconds: 30,
+          })),
+          description:
+            "Rolling daily VCP screening history (last 30 recorded days, ascending)",
+          mimeType: "application/json",
+          extensions: {
+            bazaar: {
+              info: {
+                input: { type: "http", method: "GET" },
+                output: {
+                  type: "json",
+                  example: {
+                    product: history.product,
+                    window: history.window,
+                    n_days: history.n_days,
+                    days: history.days,
+                  },
+                },
+              },
+              schema: {
+                $schema: "https://json-schema.org/draft/2020-12/schema",
+                type: "object",
+                properties: {
+                  input: {
+                    type: "object",
+                    properties: {
+                      type: { type: "string", const: "http" },
+                      method: { type: "string", enum: ["GET"] },
+                      queryParams: {
+                        type: "object",
+                        properties: {},
+                        additionalProperties: false,
+                      },
+                    },
+                    required: ["type", "method"],
+                    additionalProperties: false,
+                  },
+                  output: {
+                    type: "object",
+                    properties: {
+                      type: { type: "string" },
+                      example: {
+                        type: "object",
+                        properties: {
+                          product: { type: "string" },
+                          window: { type: "string" },
+                          n_days: { type: "integer" },
+                          days: { type: "array" },
+                        },
+                      },
+                    },
+                    required: ["type"],
+                  },
+                },
+                required: ["input"],
+              },
+            },
+          },
+        },
       },
       server,
     ),
@@ -270,6 +361,10 @@ function makeApp(env) {
   app.get("/signal/latest", (c) => {
     c.executionCtx?.waitUntil(bumpKV("paid:signal"));
     return c.json(signal);
+  });
+  app.get("/signal/history", (c) => {
+    c.executionCtx?.waitUntil(bumpKV("paid:history"));
+    return c.json(history);
   });
 
   app.all("*", (c) => c.json({ error: "not_found", see: "GET /" }, 404));

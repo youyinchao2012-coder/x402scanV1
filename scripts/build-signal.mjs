@@ -49,4 +49,26 @@ try {
 } catch {}
 
 writeFileSync(out, JSON.stringify(signal, null, 1));
-console.log("wrote", out, "asof", signal.asof, "counts", JSON.stringify(signal.counts));
+
+// Rolling paid history product: last 30 daily screenings, ascending by date.
+// Grows automatically with the daily chain; days before the service existed
+// are honestly absent (the payload says so).
+const HISTORY_OUT = join(here, "..", "src", "history.json");
+const daily = [];
+for (const f of files.slice(-30)) {
+  const dd = JSON.parse(readFileSync(join(vcp2, f), "utf8"));
+  daily.push({
+    asof: dd.asof,
+    counts: Object.fromEntries(Object.entries(dd.tiers).map(([k, v]) => [k, v.length])),
+    tiers: Object.fromEntries(Object.entries(dd.tiers).map(([k, v]) => [k, v.map(slim)])),
+  });
+}
+const history = {
+  product: "VCP Signal API — daily screening history",
+  window: daily.length ? `${daily[0].asof}..${daily[daily.length - 1].asof}` : "",
+  n_days: daily.length,
+  note: "Every day this service ran its screening is recorded here; days before the service launched are absent. Research data, not investment advice.",
+  days: daily,
+};
+writeFileSync(HISTORY_OUT, JSON.stringify(history, null, 1));
+console.log("wrote", out, "asof", signal.asof, "counts", JSON.stringify(signal.counts), "| history n_days", history.n_days);

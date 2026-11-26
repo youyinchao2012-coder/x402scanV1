@@ -1,0 +1,136 @@
+{
+ "product": "VCP Signal API — daily screening history",
+ "window": "2026-11-16..2026-11-26",
+ "n_days": 3,
+ "note": "Every day this service ran its screening is recorded here; days before the service launched are absent. Research data, not investment advice.",
+ "days": [
+  {
+   "asof": "2026-11-16",
+   "counts": {
+    "A": 1,
+    "B": 1,
+    "C": 0
+   },
+   "tiers": {
+    "A": [
+     {
+      "code": "7765",
+      "name": "CHT Security Co., Ltd.",
+      "tier": "A-箱體突破",
+      "profile": "P2",
+      "close": 296,
+      "trigger": 290.79,
+      "pivot": 290.5,
+      "dist": 0,
+      "tight": null,
+      "dryup": null,
+      "depth": 0.351,
+      "stop_note": "停損=進價x0.90;放量-4%即撤"
+     }
+    ],
+    "B": [
+     {
+      "code": "2886",
+      "name": "Mega Financial Holding Co., Ltd.",
+      "tier": "B-VCP臨界",
+      "profile": "P1/P3",
+      "close": 54.5,
+      "trigger": 56.06,
+      "pivot": 56,
+      "dist": -0.027,
+      "tight": 0.117,
+      "dryup": 0.97,
+      "depth": 0.296,
+      "stop_note": "觸發=收盤>pivot且量≥1.4x均量"
+     }
+    ],
+    "C": []
+   }
+  },
+  {
+   "asof": "2026-11-17",
+   "counts": {
+    "A": 1,
+    "B": 1,
+    "C": 0
+   },
+   "tiers": {
+    "A": [
+     {
+      "code": "8415",
+      "name": "BRIGHTON-BEST INTERNATION (TAIW",
+      "tier": "A-箱體突破",
+      "profile": "P2",
+      "close": 41.35,
+      "trigger": 38.69,
+      "pivot": 38.65,
+      "dist": 0,
+      "tight": null,
+      "dryup": null,
+      "depth": 0.154,
+      "stop_note": "停損=進價x0.90;放量-4%即撤"
+     }
+    ],
+    "B": [
+     {
+      "code": "2886",
+      "name": "兆豐金",
+      "tier": "B-VCP臨界",
+      "profile": "P1/P3",
+      "close": 54.7,
+      "trigger": 56.36,
+      "pivot": 56.3,
+      "dist": -0.028,
+      "tight": 0.117,
+      "dryup": 0.99,
+      "depth": 0.296,
+      "stop_note": "觸發=收盤>pivot且量≥1.4x均量"
+     }
+    ],
+    "C": []
+   }
+  },
+  {
+   "asof": "2026-11-26",
+   "counts": {
+    "A": 0,
+    "B": 2,
+    "C": 0
+   },
+   "tiers": {
+    "A": [],
+    "B": [
+     {
+      "code": "2412",
+      "name": "中華電",
+      "tier": "B-VCP臨界",
+      "profile": "P1/P3",
+      "close": 169,
+      "trigger": 171.17,
+      "pivot": 171,
+      "dist": -0.012,
+      "tight": 0.093,
+      "dryup": 1.45,
+      "depth": 0.207,
+      "stop_note": "觸發=收盤>pivot且量≥1.4x均量"
+     },
+     {
+      "code": "2474",
+      "name": "可成",
+      "tier": "B-坑右側回站",
+      "profile": "P2",
+      "close": 199.5,
+      "trigger": 199.5,
+      "pivot": 198.23,
+      "dist": 0.006,
+      "tight": null,
+      "dryup": 0.71,
+      "depth": 0.321,
+      "stop_note": "隔日收盤買入;停損=max(進價x0.90,坑底x0.95)"
+     }
+    ],
+    "C": []
+   }
+  }
+ ]
+}

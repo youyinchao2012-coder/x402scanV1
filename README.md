@@ -9,6 +9,7 @@ x402 HTTP 端點,部署在 Cloudflare Worker,掛在 x402scan 目錄。
 |---|---|---|---|
 | GET | `/` | 能力發現(產品說明、價格、endpoints) | 免費 |
 | GET | `/signal/latest` | 最新 VCP 篩選:tier A/B/C + 觸發/樞紐/停損 + 回測摘要 | $0.01(USDC) |
+| GET | `/signal/history` | 滾動每日篩選歷史(最近 30 個已記錄日,asc;服務上線前的日期如實缺席) | $0.01(USDC) |
 
 ## 本地開發
 
