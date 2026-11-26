@@ -196,6 +196,13 @@ function makeApp(env) {
     return c.json(out);
   });
 
+  // Public usage badge (shields.io endpoint format) — radical transparency as marketing.
+  app.get("/badge.json", async (c) => {
+    const req = env.VCP_COUNTER ? parseInt((await env.VCP_COUNTER.get("req:signal")) || "0", 10) : 0;
+    const paid = env.VCP_COUNTER ? parseInt((await env.VCP_COUNTER.get("paid:signal")) || "0", 10) : 0;
+    return c.json({ schemaVersion: 1, label: "x402 calls", message: `${req} req · ${paid} paid`, color: "blue" });
+  });
+
   // Paid endpoints: x402 v2 payment middleware gates everything below.
   // NETWORK must be CAIP-2 in v2 (eip155:84532 = Base Sepolia).
   // Count every attempt at the paid route (before the payment gate).

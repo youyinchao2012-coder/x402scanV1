@@ -1,0 +1,20 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.youyinchao2012-coder/vcp-signal-mcp",
+  "description": "MCP connector for the VCP Signal x402 API: Taiwan common-stock VCP (volume-contraction) daily screening, $0.01 USDC per call on Base via x402 v2 — no account, no API key. Research data, not investment advice.",
+  "repository": {
+    "url": "https://github.com/youyinchao2012-coder/x402scanV1",
+    "source": "github"
+  },
+  "version": "0.1.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "vcp-signal-mcp",
+      "version": "0.1.1",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

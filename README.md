@@ -1,7 +1,12 @@
 # VCP Signal API — x402 付費訊號端點(第一節實作)
 
+[![npm](https://img.shields.io/npm/v/vcp-signal-mcp)](https://www.npmjs.com/package/vcp-signal-mcp)
+[![x402scan](https://img.shields.io/badge/x402scan-verified-green)](https://www.x402scan.com/server/fcbe0340-51c7-4c32-b46f-7d695e1e0e28)
+[![status](https://img.shields.io/endpoint?url=https%3A%2F%2Fvcp-signal-x402.x402-vcp-signal.workers.dev%2Fbadge.json)](https://vcp-signal-x402.x402-vcp-signal.workers.dev/stats)
+
 把 `vcp2/` 的每日 VCP 篩選訊號包成 **$0.01/次、USDC 付款、免帳號免 API key** 的
 x402 HTTP 端點,部署在 Cloudflare Worker,掛在 x402scan 目錄。
+MCP connector:`npx vcp-signal-mcp`(stdio;免費 preview + 兩個 $0.01 付費工具)。
 
 ## 端點
 
