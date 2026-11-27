@@ -139,6 +139,43 @@ function makeApp(env) {
     }
   }
 
+  // Funnel instrumentation: who hits the paywall and why they drop.
+  // Buckets by user-agent family so /stats can separate crawlers from agents.
+  function classifyUA(ua) {
+    const u = (ua || "").toLowerCase();
+    if (!u) return "no-ua";
+    if (/x402|payment|agent|coinbase|wallet|crypto|langchain|llamaindex|openai|anthropic|claude|mcp|go-http|node-fetch|undici|axios|python-requests|curl|postman/.test(u)) {
+      if (/curl|wget/.test(u)) return "curl";
+      if (/python-requests/.test(u)) return "python";
+      if (/node-fetch|undici|axios/.test(u)) return "node";
+      return "agent";
+    }
+    if (/bot|spider|crawl|monitor|health/.test(u)) return "crawler";
+    if (/mozilla|chrome|safari|firefox|edg/.test(u)) return "browser";
+    return "other";
+  }
+
+  // One-row-per-attempt append log (KV, oldest trimmed) + verify/settle failure
+  // capture from the PAYMENT-RESPONSE / PAYMENT-ERROR headers on the response.
+  async function logAttempt(c, outcome, detail) {
+    if (!env.VCP_COUNTER) return;
+    const day = new Date().toISOString().slice(0, 10);
+    const key = "attempts:" + day;
+    try {
+      const row = JSON.stringify({
+        t: Date.now(),
+        ep: c.req.path,
+        ua: classifyUA(c.req.header("User-Agent")),
+        net: (c.req.header("Payment-Signature") ? "sent-payment" : "challenge-only"),
+        outcome,
+        detail: detail ? String(detail).slice(0, 160) : undefined,
+      });
+      const prev = (await env.VCP_COUNTER.get(key)) || "";
+      const next = prev ? prev + "\n" + row : row;
+      await env.VCP_COUNTER.put(key, next.slice(-100000), { expirationTtl: 60 * 60 * 24 * 40 });
+    } catch { /* logging must never break the product */ }
+  }
+
   // Free teaser: tier counts + up to 1 sample per tier + honest backtest.
   // Lets a buyer agent (or its LLM) evaluate the contract before paying.
   // Deliberately incomplete: full lists require payment.
@@ -193,6 +230,19 @@ function makeApp(env) {
       out.totals[k] = parseInt((await env.VCP_COUNTER.get(k)) || "0", 10);
       out.today[k] = parseInt((await env.VCP_COUNTER.get(k + ":" + day)) || "0", 10);
     }
+    // UA-mix + attempt log for funnel diagnosis (added 2026-11-27).
+    out.ua = {};
+    for (const bucket of ["agent", "browser", "curl", "python", "node", "crawler", "no-ua", "other"]) {
+      for (const ep of ["signal", "history"]) {
+        const k = "ua:" + ep + ":" + bucket;
+        const v = parseInt((await env.VCP_COUNTER.get(k + ":" + day)) || "0", 10);
+        if (v) { out.ua[ep + "." + bucket] = v; }
+      }
+    }
+    if (c.req.query("attempts")) {
+      const raw = (await env.VCP_COUNTER.get("attempts:" + day)) || "";
+      out.attempts = raw ? raw.split("\n").slice(-50).map((r) => { try { return JSON.parse(r); } catch { return r; } }) : [];
+    }
     return c.json(out);
   });
 
@@ -219,6 +269,28 @@ function makeApp(env) {
     new x402ResourceServer(new HTTPFacilitatorClient({ url: FACILITATOR })),
     {},
   );
+  app.use(async (c, next) => {
+    if (c.req.path !== "/signal/latest" && c.req.path !== "/signal/history") return next();
+    // challenge-only counters already bumped per-route above; here we classify
+    // the outcome after the gate so we can tell HOW agents fail (no payment vs
+    // bad signature vs settle rejected).
+    await next();
+    const ep = c.req.path === "/signal/latest" ? "signal" : "history";
+    const status = c.res.status;
+    let outcome = String(status);
+    let detail;
+    try {
+      const pe = c.res.headers.get("Payment-Error") || c.res.headers.get("payment-error");
+      if (pe) { outcome = "paywall-" + (status === 402 ? "challenge" : "error"); detail = pe; }
+      else if (status === 402) outcome = "paywall-challenge";
+      else if (status === 200) outcome = "paid-ok";
+      const pr = c.res.headers.get("Payment-Response") || c.res.headers.get("payment-response");
+      if (pr && status === 200) detail = "settled";
+    } catch {}
+    c.executionCtx?.waitUntil(bumpKV("ua:" + ep + ":" + classifyUA(c.req.header("User-Agent"))));
+    c.executionCtx?.waitUntil(logAttempt(c, outcome, detail));
+  });
+
   app.use(
     paymentMiddleware(
       {
